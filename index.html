@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Endereço por CEP</title>
+    <style>
+        :root {
+            --azul-primario: #2563eb;
+            --azul-secundario: #3b82f6;
+            --azul-claro: #dbeafe;
+            --rosa-primario: #ec4899;
+            --rosa-secundario: #f472b6;
+            --cinza-escuro: #1f2937;
+            --cinza-claro: #f3f4f6;
+            --branco: #ffffff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--azul-claro);
+            color: var(--cinza-escuro);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background-color: var(--branco);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            transition: all 0.3s ease;
+        }
+        
+        h1 {
+            color: var(--rosa-primario);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--rosa-primario), var(--azul-primario));
+            border-radius: 2px;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--azul-primario);
+            font-size: 14px;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--azul-secundario);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        
+        input[type="text"]:disabled {
+            background-color: var(--cinza-claro);
+            color: var(--cinza-escuro);
+            border-color: #e5e7eb;
+            cursor: not-allowed;
+        }
+        
+        .cep-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        #cep {
+            flex: 1;
+            padding: 14px 16px;
+            border: 2px solid var(--azul-secundario);
+        }
+        
+        button {
+            background: linear-gradient(135deg, var(--rosa-primario), var(--rosa-secundario));
+            color: white;
+            border: none;
+            padding: 0 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(135deg, var(--rosa-secundario), var(--rosa-primario));
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .result-container {
+            background-color: var(--cinza-claro);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .result-title {
+            color: var(--azul-primario);
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .result-title svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--azul-primario);
+        }
+        
+        @media (max-width: 640px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            .cep-container {
+                flex-direction: column;
+            }
+            
+            button {
+                padding: 12px;
+                width: 100%;
+            }
+        }
+        
+        /* Animação de loading */
+        .loader {
+            display: none;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Consulta de Endereço por CEP</h1>
+        
+        <div class="cep-container">
+            <div style="flex: 1;">
+                <label for="cep">CEP</label>
+                <input type="text" id="cep" placeholder="Digite o CEP (apenas números)" maxlength="9" 
+                       oninput="formatarCEP(this)">
+            </div>
+            <button onclick="buscarEndereco()" id="buscar-btn">
+                Buscar
+                <div class="loader" id="loader"></div>
+            </button>
+        </div>
+        
+        <div class="result-container" id="result-container" style="display: none;">
+            <div class="result-title">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+                <span>Resultado da Consulta</span>
+            </div>
+            
+            <div class="input-group">
+                <label for="logradouro">Logradouro</label>
+                <input type="text" id="logradouro" disabled>
+            </div>
+            
+            <div class="input-group">
+                <label for="bairro">Bairro</label>
+                <input type="text" id="bairro" disabled>
+            </div>
+            
+            <div class="input-group">
+                <label for="localidade">Cidade</label>
+                <input type="text" id="localidade" disabled>
+            </div>
+            
+            <div class="input-group">
+                <label for="uf">Estado</label>
+                <input type="text" id="uf" disabled>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
